@@ -10,7 +10,7 @@ public class ModelComponent {
 	private String dp = "com.mysql.cj.jdbc.Driver";
 	private String url = "jdbc:mysql://localhost/kodenest_db?user=root&password=11%4022y%40M0%21.";
 	private String query1 = "INSERT INTO users VALUES(?, ?, ?, ?, ?)";
-	private String query2 = "SELECT * FROM users WHERE username=? and password=?";
+	private String query2 = "SELECT * FROM users WHERE username=?";
 
 	private Connection con;
 	private ResultSet res;
@@ -35,8 +35,9 @@ public class ModelComponent {
 	public int storeUser(String userName, String password, String name, String emial, String phone) {
 		int nora = 0;
 		try (PreparedStatement pst1 = con.prepareStatement(query1)) {
+			String encodedPassword = PasswordEncoder.encode(password);
 			pst1.setString(1, userName);
-			pst1.setString(2, password);
+			pst1.setString(2, encodedPassword);
 			pst1.setString(3, name);
 			pst1.setString(4, emial);
 			pst1.setString(5, phone);
@@ -51,12 +52,12 @@ public class ModelComponent {
 
 	public boolean loginUser(String username, String password) {
 		try (PreparedStatement pst2 = con.prepareStatement(query2)) {
+			String encodedPassword  = "";
 			pst2.setString(1, username);
-			pst2.setString(2, password);
-
 			res = pst2.executeQuery();
 			if (res.next()) {
-				return true;
+				encodedPassword = res.getString("password");
+				return PasswordEncoder.validate(password, encodedPassword);
 			} else {
 				return false;
 			}
